@@ -14,7 +14,7 @@ const expenseList = document.getElementById("expense-list");
 const totalDisplay = document.getElementById("total");
 
 // 2. Create an empty lit to hold our expenses
-const expenses = [];
+let expenses = [];
 
 function renderExpenses() {
     // 1. Clear the table
@@ -28,7 +28,9 @@ function renderExpenses() {
             <td>${expense.category}</td>
             <td>${expense.department}</td>
             <td>${formatRupiah(expense.amount)}</td>
-            <td></td>
+            <td>
+                <button class="btn btn-sm btn-danger" data-id="${expense.id}">Delete</button>
+            </td>
         `;
         expenseList.appendChild(row);
     });
@@ -42,6 +44,20 @@ function renderExpenses() {
     totalDisplay.textContent = formatRupiah(total);
 }
 
+expenseList.addEventListener("click", function (event) {
+    // Only react when delete button was clicked
+    if (!event.target.matches("button[data-id]")) return;
+
+    const id = Number(event.target.dataset.id);
+
+    // Keep every expense EXCEPT the one wwith this id
+    expenses = expenses.filter(function (expense) {
+        return expense.id !== id;
+    });
+
+    renderExpenses();
+})
+
 // 3. Run this code whenever the form is submitted
 form.addEventListener("submit", function (event) {
     event.preventDefault(); // stop the page from reloading
@@ -53,7 +69,7 @@ form.addEventListener("submit", function (event) {
     const department = document.getElementById("department").value;
 
     // 5. Bundle them into one object
-    const expense = { date, category, amount, department };
+    const expense = { id: Date.now(), date, category, amount, department };
 
     // 6. Add it to the list
     expenses.push(expense);
