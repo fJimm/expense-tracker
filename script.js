@@ -9,6 +9,7 @@ function formatRupiah(Number) {
 
 // 1. Find the form on the page
 const form = document.getElementById("expense-form");
+const filterCategory = document.getElementById("filter-category");
 
 const expenseList = document.getElementById("expense-list");
 const totalDisplay = document.getElementById("total");
@@ -17,11 +18,20 @@ const totalDisplay = document.getElementById("total");
 let expenses = [];
 
 function renderExpenses() {
-    // 1. Clear the table
+    // 1. Decide which expense to show
+    const selected = filterCategory.value;
+    const visibleExpeses = 
+        selected === "all"
+            ? expenses
+            : expenses.filter(function (expense) {
+                return expense.category === selected;
+            });
+
+    // 2. Clear the table
     expenseList.innerHTML = "";
 
-    // 2. Add one row per expense
-    expenses.forEach(function (expense) {
+    // 3. Add one row per VISIBLE expense
+    visibleExpeses.forEach(function (expense) {
         const row = document.createElement("tr");
         row.innerHTML = `
             <td>${expense.date}</td>
@@ -35,12 +45,11 @@ function renderExpenses() {
         expenseList.appendChild(row);
     });
 
-    // 3. Calculate the total
-    const total = expenses.reduce(function (sum, expense) {
+    // 4. Total of the VISIBILE expenses
+    const total = visibleExpenses.reduce(function (sum, expense) {
         return sum + expense.amount;
     }, 0);
 
-    // 4. Show the total
     totalDisplay.textContent = formatRupiah(total);
 }
 
@@ -81,3 +90,5 @@ form.addEventListener("submit", function (event) {
     // 8. Clear the form
     form.reset();
 });
+
+filterCategory.addEventListener("change", renderExpenses);
