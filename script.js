@@ -14,8 +14,24 @@ const filterCategory = document.getElementById("filter-category");
 const expenseList = document.getElementById("expense-list");
 const totalDisplay = document.getElementById("total");
 
-// 2. Create an empty lit to hold our expenses
-let expenses = [];
+// Load saved expenses from the browser, or start with an empty list
+function loadExpenses() {
+    const saved = localStorage.getItem("expenses");
+    if (!saved) return [];
+
+    try {
+        return JSON.parse(saved);
+    } catch (error) {
+        console.error("Saved data is corrupted, starting fresh.", error);
+        return [];
+    }
+}
+
+let expenses = loadExpenses();
+
+function saveExpenses() {
+    localStorage.setItem("expenses", JSON.stringify(expenses));
+}
 
 function renderExpenses() {
     // 1. Decide which expense to show
@@ -64,6 +80,7 @@ expenseList.addEventListener("click", function (event) {
         return expense.id !== id;
     });
 
+    saveExpenses();
     renderExpenses();
 })
 
@@ -82,6 +99,7 @@ form.addEventListener("submit", function (event) {
 
     // 6. Add it to the list
     expenses.push(expense);
+    saveExpenses();
     renderExpenses();
 
     // 7. Show the result in the browser's console
@@ -92,3 +110,4 @@ form.addEventListener("submit", function (event) {
 });
 
 filterCategory.addEventListener("change", renderExpenses);
+renderExpenses();
