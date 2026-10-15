@@ -1,10 +1,10 @@
 // Format number as Rupiah, e.g. 10000 -> "Rp 10.000"
-function formatRupiah(Number) {
+function formatRupiah(amount) {
     return new Intl.NumberFormat("id-ID", {
         style: "currency",
         currency: "IDR",
         minimumFractionDigits: 0,
-    }).format(Number);
+    }).format(amount);
 }
 
 // 1. Find the form on the page
@@ -20,7 +20,7 @@ let expenses = [];
 function renderExpenses() {
     // 1. Decide which expense to show
     const selected = filterCategory.value;
-    const visibleExpeses = 
+    const visibleExpenses = 
         selected === "all"
             ? expenses
             : expenses.filter(function (expense) {
@@ -31,7 +31,7 @@ function renderExpenses() {
     expenseList.innerHTML = "";
 
     // 3. Add one row per VISIBLE expense
-    visibleExpeses.forEach(function (expense) {
+    visibleExpenses.forEach(function (expense) {
         const row = document.createElement("tr");
         row.innerHTML = `
             <td>${expense.date}</td>
