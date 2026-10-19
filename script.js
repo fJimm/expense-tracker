@@ -9,6 +9,12 @@ function formatRupiah(amount) {
 
 // 1. Find the form on the page
 const form = document.getElementById("expense-form");
+const submitBtn = document.getElementById("submit-btn");
+const cancelBtn = document.getElementById("cancel-btn");
+
+// null = adding a new expense, a number = editing the expese with that id
+let editingId = null;
+
 const filterCategory = document.getElementById("filter-category");
 
 const expenseList = document.getElementById("expense-list");
@@ -54,8 +60,9 @@ function renderExpenses() {
             <td>${expense.category}</td>
             <td>${expense.department}</td>
             <td>${formatRupiah(expense.amount)}</td>
-            <td>
-                <button class="btn btn-sm btn-danger" data-id="${expense.id}">Delete</button>
+            <td>""
+                <button class="btn btn-sm btn-warning" data-action="edit" data-id="${expense.id}">Edit</button>
+                <button class="btn btn-sm btn-danger" data-action="delete" data-id="${expense.id}">Delete</button>
             </td>
         `;
         expenseList.appendChild(row);
@@ -69,20 +76,56 @@ function renderExpenses() {
     totalDisplay.textContent = formatRupiah(total);
 }
 
+function startEdit(id) {
+    // Find the expense we want to edit
+    const expense = expenses.find(function (item) {
+        return item.id === id;
+    });
+    if (!expense) return;
+
+    // Put its values into the form
+    document.getElementById("date").value = expense.date;
+    document.getElementById("category").value = expense.category;
+    document.getElementById("amount").value = expense.amount;
+    document.getElementById("department").value = expense.department;
+
+    // Switch to edit mode
+    editingId = id;
+    submitBtn.textContent = "Save Changes";
+    cancelBtn.classList.remove("d-none");
+}
+
+function resetForm() {
+    form.reset();
+    editingId = null;
+    submitBtn.textContent = "Add Expense";
+    cancelBtn.classList.add("d-none");
+}
+
+cancelBtn.addEventListener("click", resetForm);
+
 expenseList.addEventListener("click", function (event) {
     // Only react when delete button was clicked
     if (!event.target.matches("button[data-id]")) return;
 
     const id = Number(event.target.dataset.id);
+    const action = event.target.dataset.action;
 
-    // Keep every expense EXCEPT the one wwith this id
-    expenses = expenses.filter(function (expense) {
-        return expense.id !== id;
-    });
+    if (action === "edit") {
+        startEdit(id);
+    } else if (action === "delete") {
+        expenses = expenses.filter(function (expense)  {
+            return expense.id !== id;
+        });
 
-    saveExpenses();
-    renderExpenses();
-})
+        // If we just deleted the expense being edited, leave edit mode
+        if (id === editingId) resetForm();
+
+        saveExpenses();
+        renderExpenses();
+    }
+
+});
 
 // 3. Run this code whenever the form is submitted
 form.addEventListener("submit", function (event) {
@@ -94,19 +137,22 @@ form.addEventListener("submit", function (event) {
     const amount = Number(document.getElementById("amount").value);
     const department = document.getElementById("department").value;
 
-    // 5. Bundle them into one object
-    const expense = { id: Date.now(), date, category, amount, department };
+    if (editingId === null) {
+        // Add mode: create a new expense
+        expenses.push({ id: Date.now(), date, category, amount, department});
+    } else {
+        // Edit mode: replace the matching expense, keep the others
+        expenses = expenses.map(function (expense) {
+            if (expense.id === editingId) {
+                return { id: expense.id, date, category, amount, department };
+            }
+            return expense;
+        });
+    }
 
-    // 6. Add it to the list
-    expenses.push(expense);
     saveExpenses();
     renderExpenses();
-
-    // 7. Show the result in the browser's console
-    console.log(expenses);
-
-    // 8. Clear the form
-    form.reset();
+    resetForm();
 });
 
 filterCategory.addEventListener("change", renderExpenses);
